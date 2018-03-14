@@ -24,45 +24,34 @@ def match_point(f1,f2):
 def RANSAC(col,f1,f2,th=5):
 	print('RANSAC...')
 	max_xy = [0,0]
-	max_set = [[],[]]
 	max_count = 0
+	f1m = []
+	f2m = []
 	for f in f1:
 		#print(f[-1])
 		count=0
-		xy_set = [[],[]]
-		# this is for purdue
-		for f_ in f2:
-			if ((f_[0]-(f[0]+f[-3]))**2+(f_[1]-(f[1]+f[-2]))**2)**0.5 < 10:
-				cos_ = np.dot(f[2:-3],f_[2:])/np.linalg.norm(f[2:-3],2)/np.linalg.norm(f_[2:],2)
-				if cos_>0.7:
-					#if f[1]>150 and f_[1]<150:
-					count += 1
-		
-		'''----------------------real image 5,6
-		for f_ in f2:
-			#if f[-3]==0 and f[-2]==-252:
-			#	print('p')
-			#if f_[1]-f[1] == -252 and f_[0]-f[0]==0:
-			#	print(cosine_similarity([f[2:-3]],[f_[2:]]))
-			if ((f_[0]-(f[0]+f[-3]))**2+(f_[1]-(f[1]+f[-2]))**2)**0.5 < 35:
-				#if f_[1]-f[1] == -252 and f_[0]-f[0]==0:
-				#	print('here')
-				#print (cosine_similarity([f[2:-3]],[f_[2:]])[0][0]>0.7)
-				cos_ = np.dot(f[2:-3],f_[2:])/np.linalg.norm(f[2:-3],2)/np.linalg.norm(f_[2:],2)
-				if cos_>0.7:
-					#if f[-2]<-100:
-					count += 1
-					xy_set[0].append(f_[0]-f[0])
-					xy_set[1].append(f_[1]-f[1])
-		'''
+		f1_ = []
+		f2_ = []
+		for  f__ in f1:
+			for f_ in f2:
+				if ((f_[0]-(f__[0]+f[-3]))**2+(f_[1]-(f__[1]+f[-2]))**2)**0.5 < 2:
+					cos_ = np.dot(f__[2:-3],f_[2:])/np.linalg.norm(f__[2:-3],2)/np.linalg.norm(f_[2:],2)
+					if cos_>0.8:
+						count += 1
+						f1_.append(f__[:2])
+						f2_.append(f_[:2])
+
 		if count >= max_count and f[-2]<=0:
 			max_count = count
 			max_xy = [f[-3],f[-2]]
-			max_set = xy_set
+			f1m = f1_
+			f2m = f2_
+	
+	im1 = Image.open('purdue/im1.jpg')
+	im2 = Image.open('purdue/im2.jpg')
+	#visualization(im1,im2,f1m,f2m)
 	print(max_count)
-	#return -max_xy[0],-max_xy[1]
-	print(max_set)
-	return -int(sum(max_set[0])/len(max_set[0])),-int(sum(max_set[1])/len(max_set[1]))
+	return -max_xy[0],-max_xy[1]
 
 def registration(col,f1,f2):
 	print('registration processing...')
@@ -74,16 +63,28 @@ def registration(col,f1,f2):
 	print(x,y)
 	return int(x),int(y)
 
+def visualization(im1,im2,f1,f2):
+	plt.figure()
+	plt.imshow(im1)
+	for f in f1:
+		plt.plot(f[1], f[0],marker='o', markerfacecolor='none',markeredgecolor='r')
+	plt.show()
+	plt.figure()
+	plt.imshow(im2)
+	for f in f2:
+		plt.plot(f[1], f[0],marker='o', markerfacecolor='none',markeredgecolor='r')
+	plt.show()
+
 def test():
 	x1 = [[2,3,[1,2,3,4,5]],[2,3,[1,2,3,4,5]]]
 	x2 = x1
 	registration(np.zeros((3,3)),x1,x2)
 
 def main():
-	img01 = Image.open('images/05.jpg')
+	img01 = Image.open('purdue/im1.jpg')
 	print(img01)
 	img1 = img01.convert('L')
-	img02 = Image.open('images/06.jpg')
+	img02 = Image.open('purdue/im2.jpg')
 	img2 = img02.convert('L')
 	
 	print(np.array(img1).shape)
@@ -122,7 +123,7 @@ def main():
 	
 	im = Image.fromarray(new_img.astype('uint8'))
 	im.show()
-	im.save('u_result.jpg')
+	im.save('result.jpg')
 
 if __name__ == '__main__':
 	main()
