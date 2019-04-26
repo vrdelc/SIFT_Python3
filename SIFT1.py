@@ -12,7 +12,7 @@ def get_image(file_name):
 	file = Path('img_data.npy')
 	if file.exists():
 		data = np.load('img_data.npy')
-		print ('File exists.')
+		#print ('File exists.')
 	else:
 		im = open(file_name)
 		lines = im.readlines()
@@ -20,7 +20,7 @@ def get_image(file_name):
 		raw_data = lines[4:]
 		data = np.array([int(i.strip('\n')) for i in raw_data]).reshape((height,width))
 		np.save('img_data.npy',data)
-		print (data)
+		#print (data)
 	return data
 
 def overflow(im):
@@ -38,7 +38,7 @@ def kernel(sigma):
 	return np.exp(-(d/(2.0*sigma**2)))/(2*math.pi*sigma**2)
 
 def Gaussian_filter(im,sigma):
-	print ('Gaussian')
+	#print ('Gaussian')
 	g = kernel(sigma)
 	return overflow(convolve2d(im, g,mode='same',boundary='symm')/sum(sum(g)))
 
@@ -57,12 +57,12 @@ class SIFT_:
 		self.set_size = 4
 		self.descriptor_size = 4
 		self.orientation_bin_number = 10
-	
+
 	def get_features(self):
 		self.DoG()
 		self.Extrema()
 		return self
-	
+
 	def get_descriptor(self):
 		self.extrema = self.Orientation()
 		self.mag,self.ori = self.assign_orientation_all()
@@ -70,27 +70,27 @@ class SIFT_:
 		return self.descriptor_
 
 	def load_DoG(self):
-		file = Path('octave3.npy')
+		file = Path('files/octave3.npy')
 		self.dog = []
 		if file.exists():
-			print('Files exist, loading...')
+			##print('Files exist, loading...')
 			for i in range(4):
-				self.dog.append(np.load('octave'+str(i)+'.npy'))
+				self.dog.append(np.load('files/octave'+str(i)+'.npy'))
 		else:
-			print('Files don\'t exist, processing DoG...')
+			##print('Files don\'t exist, processing DoG...')
 			self.DoG()
 
 	def load_Extrema(self):
-		file = Path('octave3_2extrema.npy')
+		file = Path('files/octave3_2extrema.npy')
 		self.extrema = []
 		if file.exists():
-			print('Files exist, loading...')
+			##print('Files exist, loading...')
 			for i in range(4):
 				self.extrema.append([])
 				for j in range(3):
-					self.extrema[i].append(np.load('octave'+str(i)+'_'+str(j)+'extrema.npy'))
+					self.extrema[i].append(np.load('files/octave'+str(i)+'_'+str(j)+'extrema.npy'))
 		else:
-			print('Files don\'t exist, processing extrema...')
+			##print('Files don\'t exist, processing extrema...')
 			self.Extrema()
 
 	def DoG(self):
@@ -103,13 +103,13 @@ class SIFT_:
 		for ind,imgs in enumerate(self.octaves_):
 			tmp = [np.subtract(imgs[ind+1],img) for ind,img in enumerate(imgs) if ind != len(imgs)-1]
 			tmp = np.stack(tmp,axis=0)
-			print(tmp.shape)
-			np.save('octave'+str(ind)+'.npy',tmp)
+			##print(tmp.shape)
+			np.save('files/octave'+str(ind)+'.npy',tmp)
 			self.dog.append(tmp)
 
 	def Extrema(self):
 		img = self.origin_img
-		print('Processing extrema')
+		##print('Processing extrema')
 		threshold = (self.ratio + 1) ** 2 / self.ratio 		#hessian
 		y_max, x_max = self.img.shape 						#hessian
 		self.extrema = []									#final shape:(4,3,list)
@@ -159,7 +159,7 @@ class SIFT_:
 		return np.array(m),np.array(o)
 
 	def descriptor(self):
-		print('Processing descriptor...')
+		##print('Processing descriptor...')
 		shape_ = int((25-1)/2)	#initial 25*25 square, before rotate
 		self.descriptor_ = []
 		for i in range(self.octaves):
@@ -167,7 +167,7 @@ class SIFT_:
 				img = self.octaves_[i][j]
 				for ind,(x,y,s,m,o) in enumerate(self.extrema[i][j]):
 					if x in range(shape_+1,img.shape[0]-shape_) and y in range(shape_+1,img.shape[1]-shape_):
-						#print(self.mag)
+						###print(self.mag)
 						ro_m = rotate(self.mag[i][j][x-1-shape_:x-1+shape_+1,y-1-shape_:y-1+shape_+1],angle= -math.degrees(o),reshape=False)[shape_-8:shape_+8,shape_-8:shape_+8]
 						ro_o = rotate(self.ori[i][j][x-1-shape_:x-1+shape_+1,y-1-shape_:y-1+shape_+1],angle= -math.degrees(o),reshape=False)[shape_-8:shape_+8,shape_-8:shape_+8]
 						#self.extrema[i][j][ind] += get_descriptor(ro_m,ro_o,o)
@@ -176,8 +176,8 @@ class SIFT_:
 		self.descriptor_ = np.array(self.descriptor_)
 
 	def Orientation(self):
-		print("=" * 50)
-		print("Orientation & Magnitude Assignment")
+		##print("=" * 50)
+		##print("Orientation & Magnitude Assignment")
 		extrema_filtered = []
 		for i in range(self.octaves):
 			extrema_filtered.append([])
@@ -185,7 +185,7 @@ class SIFT_:
 				image = self.dog[i][j, :, :]
 				y_max, x_max = image.shape
 				sig = self.extrema[i][j][0][2]
-				print(sig)
+				#print(sig)
 				mask_size = int(np.ceil(self.orientation_mask_ratio * sig))
 				x = np.linspace(-mask_size, mask_size, endpoint=True, num=2 * mask_size + 1)
 				y = np.linspace(-mask_size, mask_size, endpoint=True, num=2 * mask_size + 1)
@@ -206,8 +206,8 @@ class SIFT_:
 					Dy = 0.5 * (sub_image[2:, 1:-1] - sub_image[:-2, 1:-1])
 					magnitude = np.sqrt(np.multiply(Dx, Dx), np.multiply(Dy, Dy))
 					orientation = np.arctan(np.divide(Dy, Dx))
-					if orientation.shape[0] != orientation.shape[1]:
-						print("Orientation error, keypoints at boundary")
+					#if orientation.shape[0] != orientation.shape[1]:
+						#print("Orientation error, keypoints at boundary")
 					for p in range(2 * mask_size + 1):
 						for q in range(2 * mask_size + 1):
 							if np.isnan(orientation[p, q]):
@@ -234,8 +234,8 @@ class SIFT_:
 						if bins[p] >= 0.8 * max_weight:
 							extrema_filtered[i][j].append((y,x,s,bins[p],max_direction))
 							#self.extrema[i][j][k] += (bins[p],)
-		print("keypoints magnitude and orientation assignment finished.")
-		print("=" * 50)
+		#print("keypoints magnitude and orientation assignment finished.")
+		#print("=" * 50)
 		return extrema_filtered
 
 def derivatives_filter(data): #data will be 3*3*3
@@ -251,7 +251,7 @@ def derivatives_filter(data): #data will be 3*3*3
 	dydz = (data[2][2,1]-data[1][2,1]) - (data[2][1,1]-data[1][1,1])
 	dzdx = dxdz
 	dzdy = dydz
-		
+
 	dDdXt = np.matrix([dx,dy,dz])
 	d2DdX2 = np.matrix([[dxdx,dxdy,dxdz],[dydx,dydy,dydz],[dzdx,dzdy,dzdz]])
 	Dxhat = data[1][1,1]-0.5*dDdXt*inv(d2DdX2)*dDdXt.transpose()
@@ -268,7 +268,7 @@ def Hessian_filter(image,x_max,y_max,threshold,x,y):
 		Dxx = 2.0 * image[y, -1] - 5.0 * image[y, -2] + 4.0 * image[y, -3] - image[y, -4]
 	else:
 		Dxx = 0
-		print("invalid Dxx")
+		#print("invalid Dxx")
 
 	if not c3 and not c4:
 		Dyy = image[y + 1, x] + image[y - 1, x] - 2.0 * image[y, x]
@@ -278,7 +278,7 @@ def Hessian_filter(image,x_max,y_max,threshold,x,y):
 		Dyy = 2.0 * image[-1, x] - 5.0 * image[-2, x] + 4.0 * image[-3, x] - image[-4, x]
 	else:
 		Dyy = 0
-		print("invalide Dyy")
+		#print("invalide Dyy")
 
 
 	if not c1 and not c2 and not c3 and not c4:
@@ -312,17 +312,17 @@ def Hessian_filter(image,x_max,y_max,threshold,x,y):
 			  3 * (image[-1, -3] + image[-3, -1])
 	else:
 		Dxy = 0
-		print("invalide Dxy and Dyx")
+		#print("invalide Dxy and Dyx")
 	Dxy *= 0.25
 	Dyx = Dxy
-					
+
 	H = np.asarray([[Dxx, Dxy], [Dyx, Dyy]])
 	t = np.trace(H)
 	d = np.linalg.det(H)
 	if d == 0:
-		print("=" * 20)
-		#print("warning: octave = ", str(i), ", level = ", str(j), ", x = ", str(x), ", y = ", str(y))
-		print("Dxx = ", str(Dxx), ", Dyy = ", str(Dyy), ", Dxy = Dyx = ", str(Dxy), ", DET = 0 !!")
+		#print("=" * 20)
+		##print("warning: octave = ", str(i), ", level = ", str(j), ", x = ", str(x), ", y = ", str(y))
+		#print("Dxx = ", str(Dxx), ", Dyy = ", str(Dyy), ", Dxy = Dyx = ", str(Dxy), ", DET = 0 !!")
 		return False
 
 	check = abs(t * t / d)
@@ -358,8 +358,8 @@ def get_4by4_patch(m,o):						#4 by 4 patch orientation and magnitude
 	return des_
 
 def visualize_orientation(m,o):
-	print(m)
-	print(o)
+	#print(m)
+	#print(o)
 	fig, axes = plt.subplots(16, 16, figsize=(4,4), gridspec_kw = {'wspace':0, 'hspace':0})
 	for i, ax in enumerate(fig.axes):
 		i_ = i//16
@@ -400,8 +400,8 @@ def handle_o(num,den):
 		return math.atan(num/den)+np.pi
 
 def main():
-	img = np.array(Image.open('example.png'))
-	print ('image_shape=',img.shape)
+	img = np.array(Image.open('image.jpg'))
+	#print ('image_shape=',img.shape)
 	sift = SIFT_(img)
 	features = sift.get_features()
 

@@ -82,50 +82,13 @@ def test():
 	x2 = x1
 	registration(np.zeros((3,3)),x1,x2)
 
-def main(im1='purdue/im1.jpg', im2='purdue/im2.jpg'):
-	img01 = Image.open(im1)
-	img1 = img01.convert('L')
-	img02 = Image.open(im2)
-	img2 = img02.convert('L')
-	
-	print('Shape of image1:',np.array(img1).shape)
-
-	if not Path('f1.npy').exists():
-		s1 = SIFT_(np.array(img1))
-		f1 = s1.get_features().get_descriptor()
-		print(f1[2],len(f1[2]))
-		s2 = SIFT_(np.array(img2))
-		f2 = s2.get_features().get_descriptor()
-		np.save('f1.npy',f1)
-		np.save('f2.npy',f2)
-	
-	f1 = np.load('f1.npy')
-	f2 = np.load('f2.npy')
-	#print([i[:2] for i in f1])
-	row,col,_ = np.array(img01).shape
-	x,y = registration(img01,img02,f1,f2)
-
-	if x >= 0:
-		new_img = np.zeros([row+x,col+y,3])
-		new_img[:row,:col,:] = img01
-		new_img[-row:,-col:,:] += img02
-		new_img[x:row,y:col,:] /=2
-	else:
-		new_img = np.zeros([row-x,col+y,3])
-		new_img[-row:,:col,:] = img01
-		new_img[:row,-col:,:] += img02
-		new_img[-x:row,y:col,:] /=2
-	
-	im = Image.fromarray(new_img.astype('uint8'))
-	im.show()
-	im.save('result.jpg')
-
 if __name__ == '__main__':
-	if len(sys.argv) == 2:
-		main(sys.argv[1],sys.argv[2])
-	else:
-		main()
+	img01 = Image.open("image.jpg")
+	img1 = img01.convert('L')
 
+	print('Shape of image:',np.array(img1).shape)
 
-
-
+	s1 = SIFT_(np.array(img1))
+	f1 = s1.get_features().get_descriptor()
+	print("Shape of descriptor: {}".format(f1.shape))
+	print(f1)
