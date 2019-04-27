@@ -36,4 +36,4 @@ And a view of the descriptor
       5.81329550e-01 0.00000000e+00]]
 
 If wee see the image with the descriptor will be like this:
-![enter image description here](https://github.com/vrdelc/SIFT_Python3/image_descriptor.jpeg)
+![enter image description here](https://github.com/vrdelc/SIFT_Python3/blob/master/image_descriptor.jpeg)
