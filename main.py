@@ -65,15 +65,10 @@ def registration(im1,im2,f1,f2):
 	print(xy)
 	return int(xy[0]),int(xy[1])
 
-def visualization(im1,im2,f1,f2):
+def visualization(im1,f1):
 	plt.figure()
 	plt.imshow(im1)
 	for f in f1:
-		plt.plot(f[1], f[0],marker='o', markerfacecolor='none',markeredgecolor='r')
-	plt.show()
-	plt.figure()
-	plt.imshow(im2)
-	for f in f2:
 		plt.plot(f[1], f[0],marker='o', markerfacecolor='none',markeredgecolor='r')
 	plt.show()
 
@@ -83,12 +78,17 @@ def test():
 	registration(np.zeros((3,3)),x1,x2)
 
 if __name__ == '__main__':
+	#Read image
 	img01 = Image.open("image.jpg")
+	#Convert from RGB to grayScale
 	img1 = img01.convert('L')
-
+	#Shape of the image
 	print('Shape of image:',np.array(img1).shape)
-
+	#Create a SIFT class with the image
 	s1 = SIFT_(np.array(img1))
+	#Obtain the descriptors
 	f1 = s1.get_features().get_descriptor()
 	print("Shape of descriptor: {}".format(f1.shape))
 	print(f1)
+	#See the image with the descriptors
+	visualization(img1,f1)
